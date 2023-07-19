@@ -1,0 +1,294 @@
+
+
+;;;
+;;;; Blender
+;;;
+
+
+(require (together))
+
+(import (jazz.io)
+        (jazz.syntax (phase syntax))
+        (world.animation)
+        (world.external.blender)
+        (world.external.convert)
+        (world.external.milkshape)
+        (world.geometry)
+        (world.material)
+        (world.model)
+        (world.settings))
+
+
+(initialize-aliases)
+
+
+(definition ms3d-pyramid
+  {File Home "Devel" "together" "worlds" "together" "assets" "together" "model" "test" "pyramid" "_Idle.ms3d"})
+
+(definition b3d-pyramid
+  {File Home "Devel" "together" "worlds" "together" "assets" "together" "model" "test" "pyramid" "_Idle.b3d"})
+
+(definition ms3d-bloodelffemale
+  {File Home "Devel" "together" "worlds" "together" "assets" "copyright" "warcraft" "model" "character" "bloodelffemale" "_Idle.ms3d"})
+
+(definition b3d-bloodelffemale
+  {File Home "Devel" "together" "worlds" "together" "assets" "copyright" "warcraft" "model" "character" "bloodelffemale" "_Idle.b3d"})
+
+(definition ms3d-dwarfmale
+  {File Home "Devel" "together" "worlds" "together" "assets" "copyright" "warcraft" "model" "character" "dwarfmale" "EmoteDance.ms3d"})
+
+(definition b3d-dwarfmale
+  {File Home "Devel" "together" "worlds" "together" "assets" "copyright" "warcraft" "model" "character" "dwarfmale" "EmoteDance.b3d"})
+
+(definition ms3d-tree
+  {File Home "Devel" "together" "worlds" "together" "assets" "world" "model" "tree" "birch_med" "_Idle.ms3d"})
+
+(definition b3d-tree
+  {File Home "Devel" "together" "worlds" "together" "assets" "world" "model" "tree" "birch_med" "_Idle.b3d"})
+
+
+(definition target-vertices
+  5)
+
+(definition target-triangles
+  5)
+
+(definition target-groups
+  5)
+
+(definition target-bones
+  '("Bone_0" "Bone_1" "Bone_3" "Bone_6" "Bone_13" "Bone_24" "Bone_31")
+  @w
+  '("Bone_0" "Bone_1" "Bone_2" "Bone_4" "Bone_10" "Bone_18" "Bone_27" "Bone_40" "Bone_55"))
+
+(definition target-frames
+  '(0. 50. 100.)
+  @w
+  '(0. 40. 80. 130. 180.))
+
+
+(definition (describe-ms3d file)
+  (define (describe-vertices vertices)
+    (format :terminal "VERTICES {a}{%}" (vector-length vertices))
+    (loop (repeat target-vertices)
+          (for vertex in-vector vertices)
+          (let ((vert (get-vertex vertex))
+                (bone (get-bone-id vertex)))
+            (format :terminal "{a} {a}{%}" (present-xyz vert) bone))))
+  
+  (define (describe-triangles triangles)
+    (format :terminal "{%}TRIANGLES {a}{%}" (vector-length triangles))
+    (loop (repeat target-triangles)
+          (for triangle in-vector triangles)
+          (let ((indices (get-vertex-indices triangle))
+                (s (get-s triangle))
+                (t (get-t triangle))
+                (d (get-d triangle)))
+            (format :terminal "{a} {a} {a} {a}{%}" indices (present-xyz s) (present-xyz t) (present-xyz d)))))
+  
+  (define (describe-groups groups)
+    (format :terminal "{%}GROUPS {a}{%}" (vector-length groups))
+    (loop (repeat target-groups)
+          (for group in-vector groups)
+          (let ((name (get-name group))
+                (triangles (get-triangles group))
+                (material-index (get-material-index group)))
+            (format :terminal "{a}{%}" name)
+            @more (format :terminal "  {a}{%}" material-index)
+            @more (format :terminal "  {a}{%}" triangles))))
+  
+  (let ((native (read-ms3d file))
+        (model (import-ms3d file)))
+    (let ((vertices (get-vertices native))
+          (triangles (get-triangles native))
+          (groups (get-groups native))
+          (materials (get-materials native))
+          (animation (get-animation model)))
+      (describe-vertices vertices)
+      (describe-triangles triangles)
+      (describe-groups groups)
+      (describe-materials materials)
+      (describe-bones animation)
+      (describe-animation animation))))
+
+
+(definition (describe-b3d file)
+  (define (describe-vertices vertices)
+    (format :terminal "VERTICES {a}{%}" (vector-length vertices))
+    (loop (repeat target-vertices)
+          (for vertex in-vector vertices)
+          (let ((vert (get-vertex vertex))
+                (bone (get-bone-id vertex)))
+            (format :terminal "{a} {a}{%}" (present-xyz vert) bone))))
+  
+  (define (describe-triangles triangles)
+    (format :terminal "{%}TRIANGLES {a}{%}" (vector-length triangles))
+    (loop (repeat target-triangles)
+          (for triangle in-vector triangles)
+          (let ((indices (get-vertex-indices triangle))
+                (material-index (get-material-index triangle))
+                (s (get-s triangle))
+                (t (get-t triangle))
+                (d (get-d triangle)))
+            (format :terminal "{a} {a} {a} {a} {a}{%}" indices material-index (present-xyz s) (present-xyz t) (present-xyz d)))))
+  
+  (define (describe-groups groups)
+    (format :terminal "{%}GROUPS {a}{%}" (vector-length groups))
+    (loop (repeat target-groups)
+          (for group in-vector groups)
+          (let ((name (get-name group))
+                (triangles (get-triangles group))
+                (material-index (get-material-index group)))
+            (format :terminal "{a}{%}" name)
+            @more (format :terminal "  {a}{%}" material-index)
+            @more (format :terminal "  {a}{%}" triangles))))
+  
+  (let ((native (read-b3d file))
+        (model (import-b3d file)))
+    (let ((vertices (get-vertices native))
+          (triangles (get-triangles native))
+          (groups (get-groups native))
+          (materials (get-materials native))
+          (animation (get-animation model)))
+      (describe-vertices vertices)
+      (describe-triangles triangles)
+      (describe-groups groups)
+      (describe-materials materials)
+      (describe-bones animation)
+      (describe-animation animation))))
+
+
+(definition (describe-materials materials)
+  (format :terminal "{%}MATERIALS {a}{%}" (vector-length materials))
+  (loop (for material in-vector materials)
+        (let ((name (get-name material))
+              (texture-name (get-texture-name material)))
+          (terminal name texture-name))))
+
+
+(definition (describe-bones animation)
+  (setup-bones animation)
+  (let ((bones (get-bones animation)))
+    (format :terminal "{%}BONES {a}{%}" (vector-length bones))
+    (loop (for n from 0)
+          (for bone in-vector bones)
+          (let ((name (get-name bone)))
+            (when (cond ((integer? target-bones)
+                         (< n target-bones))
+                        (else
+                         (member? (get-name bone) target-bones)))
+              (let ((position (get-position bone))
+                    (rotation (quaternion->euler (get-rotation bone)))
+                    (length (get-length bone))
+                    (matrix (get-global-skeleton-matrix bone)))
+                (let ((head (matrix-transform matrix (vertex 0. 0. 0.)))
+                      (tail (matrix-transform matrix (vertex-scalar* (vertex 0. 1. 0.) length))))
+                  (format :terminal "{a}{%}" name)
+                  (format :terminal "  pos: {a}{%}" (present-xyz position))
+                  (format :terminal "  rot: {a}{%}" (present-xyz rotation))
+                  (format :terminal "  head: {a}{%}" (present-xyz head))
+                  (format :terminal "  tail: {a}{%}" (present-xyz tail))
+                  @more (debug-matrix (get-global-skeleton-matrix bone) :terminal))))))))
+
+
+(definition (describe-animation animation)
+  (format :terminal "{%}ANIMATION{%}")
+  (let ((bones (get-bones animation)))
+    (loop (for n from 0)
+          (for bone in-vector bones)
+          (when (cond ((integer? target-bones)
+                       (< n target-bones))
+                      (else
+                       (member? (get-name bone) target-bones)))
+            (format :terminal "{a}{%}" (get-name bone))
+            (loop (for keyframe in-vector (get-position-keys bone))
+                  (let ((frame (get-frame keyframe)))
+                    (let ((frame (find target-frames frame test: (lambda (x y) (< (abs (- x y)) .001)) return: 'item)))
+                      (when frame
+                        (let ((key (get-key keyframe)))
+                          (format :terminal "  {a} {a}{%}" frame (present-vertex key)))))))
+            (loop (for keyframe in-vector (get-rotation-keys bone))
+                  (let ((frame (get-frame keyframe)))
+                    (let ((frame (find target-frames frame test: (lambda (x y) (< (abs (- x y)) .001)) return: 'item)))
+                      (when frame
+                        (let ((key (get-key keyframe)))
+                          (format :terminal "  {a} {a} {a}{%}" frame (present-vertex (quaternion->euler key)) (present-quaternion key)))))))))))
+
+
+(definition (test-model model)
+  (let ((animation (find-animation model "Idle")))
+    (let ((morphing (new Morphing animation)))
+      (define (find-morph name)
+        (loop (for morph in-vector (get-morphs morphing))
+              (when (equal? (get-name (get-bone morph)) name)
+                (return morph))
+              (finally #f)))
+      
+      (let ((left-toe    (vertex  0.130681 0.002050 0.217855))
+            (left-side   (vertex -0.030775 0.002111 0.248753))
+            (right-pivot (vertex  0.053256 0.057371 -0.195420))
+            (right-top   (vertex -0.002367 0.082624 -0.181101))
+            (left-bones  '("Bone_0" "Bone_1" "Bone_3" "Bone_6" "Bone_13" "Bone_24" "Bone_31"))
+            (right-bones '("Bone_0" "Bone_1" "Bone_3" "Bone_5" "Bone_11" "Bone_23")))
+        (let ((target-vertex (vertex 0.248753 -0.030775 0.002111) @w left-side)
+              (target-bones left-bones)
+              (target-frames '(0. @w 50. 100. @w 150. 180.)))
+          (define (near? v1 v2)
+            (< (vertex-distance v1 v2) .001))
+          
+          (let ((native (get-native model)))
+            (cond ((is? native MS3D-Model)
+                   (let ((bone-id
+                           (loop (for vertex in-vector (get-vertices native))
+                                 (when (near? (get-vertex vertex) target-vertex)
+                                   (return (get-bone-id vertex)))
+                                 (finally #f))))
+                     (let ((bones (get-bones native)))
+                       (let ((bone (vector-ref bones bone-id)))
+                         (format :terminal "{a}{%}" (get-name bone))))))
+                  ((is? native B3D-Model)
+                   (let ((bone-id
+                           (loop (for vertex in-vector (get-vertices native))
+                                 (when (near? (get-vertex vertex) target-vertex)
+                                   (return (get-bone-id vertex)))
+                                 (finally #f))))
+                     (let ((bones (get-bones native)))
+                       (let ((bone (vector-ref bones bone-id)))
+                         (format :terminal "{a}{%}" (get-name bone))))))))
+          (for-each (lambda (bone-name)
+                      (let ((morph (find-morph bone-name)))
+                        (goto-frame morphing 0.)
+                        (let ((transformed (map (lambda (frame)
+                                                  (goto-frame morphing frame)
+                                                  ;(present-vertex (matrix-transform (get-bone-transformation morph) target-vertex))
+                                                  (present-vertex (matrix-transform (get-inverse-skeleton-matrix (get-bone morph)) target-vertex)))
+                                                target-frames)))
+                          (format :terminal "{a} {a}{%}" bone-name transformed))))
+                    target-bones))))))
+
+
+(definition (test-performance)
+  (time (read-ms3d ms3d-bloodelffemale))
+  (time (read-b3d b3d-bloodelffemale))
+  @w(time (import-ms3d ms3d-bloodelffemale))
+  @w(time (import-b3d b3d-bloodelffemale)))
+
+
+(cond ((command-argument "ms3d")
+       (describe-ms3d ms3d-bloodelffemale))
+      ((command-argument "b3d")
+       (describe-b3d b3d-bloodelffemale))
+      ((command-argument "pyramid")
+       (convert-milkshape->blender ms3d-pyramid))
+      ((command-argument "bloodelffemale")
+       (convert-milkshape->blender ms3d-bloodelffemale))
+      ((command-argument "dwarfmale")
+       (convert-milkshape->blender ms3d-dwarfmale))
+      ((equal? (command-argument "action") "test")
+       (let ((model (command-argument "model")))
+         (test-model (cond ((equal? model "ms3d")
+                            (import-ms3d ms3d-bloodelffemale))
+                           ((equal? model "b3d")
+                            (import-b3d b3d-bloodelffemale))))))
+      ((command-argument "perf")
+       (test-performance)))
