@@ -1,0 +1,20 @@
+;; It should be possible to use packetized (avc) format for our transport
+;; as we do not require the data to be a byte stream!?
+
+;; from Tim Muller
+;; "alignment=au means that each output buffer contains the NALs for a whole 
+;; picture. alignment=nal just means that each output buffer contains 
+;; complete NALs, but those do not need to represent a whole frame."
+
+;; NAL  : network abstraction layer
+;; NALU : network abstraction layer unit
+
+;; forbidden_zero_bit / nal_ref_idc / nal_unit_type
+;;   1 : 0 0 1 (Coded slice of a non-IDR picture)
+;;   6 : 0 0 6 (Supplemental enhancement information (SEI))
+;;   9 : 0 0 9 (Access unit delimiter)
+;;  33 : 0 1 1 (Coded slice of a non-IDR picture)
+;;  65 : 0 2 1 (Coded slice of a non-IDR picture)
+;; 101 : 0 3 5 (Coded slice of an IDR picture)
+;; 103 : 0 3 7 (Sequence parameter set)
+;; 104 : 0 3 8 (Picture parameter set)

@@ -1,0 +1,37 @@
+;;;
+;;;; PROCESS
+;;;
+
+
+;; process()
+;;   running-time = gst_element_get_running_time(appsrc)
+;;   earliest = get-earliest-packet()
+;;   write-time = determine-write-time(earliest, latency, udp-audio-process)
+;;   if running-time >= write-time
+;;     give-audio(packet, latency)
+;;   end
+
+
+;; determine-write-time(packet, latency, process-window)
+;;   dts = get-dts(packet)
+;;   base + dts + latency + process-window
+
+
+;; give-audio(packet, latency)
+;;   duplicate missing audio packets
+;;   dts = dts + latency
+;;   write-audio(buffer, dts, pts, duration)
+
+
+;; write-audio(buffer, dts, pts, duration)
+;;   timestamp-offset = adapt-time(source-adapter, appsrc, pts)
+;;   pts = pts + timestamp-offset
+;;   gst_app_src_write(appsrc, buffer, dts, pts, duration)
+
+
+;; adapt-time(timestamp)
+;;   if not timestamp-offset
+;;     running-time = gst_element_get_running_time(appsrc)
+;;     timestamp-offset = running-time - timestamp
+;;   end
+;;   timestamp-offset

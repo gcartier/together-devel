@@ -1,0 +1,32 @@
+
+(declare (standard-bindings)
+         (extended-bindings)
+         (block)
+         (not inline)
+         (not proper-tail-calls)
+         (not safe))
+
+(define count 0)
+(##vector-set! ##interrupt-vector 2 (lambda ()
+                                      (declare (not interrupts-enabled))
+                                      (set! count (##fx+ count 1))
+                                      (##thread-heartbeat!)))
+
+(define (estimate-computer-speed)
+  (declare (proper-tail-calls))
+  (let ((before (##current-time-point)))
+    (let loop ((c 3300000000))
+      (if (##fx>= c 0)
+          (loop (##fx- c 1))))
+    (let ((after (##current-time-point)))
+      (let ((elapse (- after before)))
+        (/ 1. elapse .01)))))
+
+(pp (estimate-computer-speed))
+(pp (estimate-computer-speed))
+(pp (estimate-computer-speed))
+(pp (estimate-computer-speed))
+(pp (estimate-computer-speed))
+(pp (estimate-computer-speed))
+
+(pp (list '*** count))

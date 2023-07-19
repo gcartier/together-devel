@@ -1,0 +1,21 @@
+;;;
+;;;; INSERT
+;;;
+
+
+;; insert(data)
+;;   local = gst_element_get_running_time(appsrc)
+;;   dts = read-dts(data)
+;;   update-time(time-base, local, dts)
+
+
+;; update-time(local, remote)
+;;   new-base = local - remote
+;;   if not base
+;;     base = new-base
+;;     latency = 0
+;;   end
+;;   raw-latency = new-base - base
+
+
+;; update-past(local, remote)

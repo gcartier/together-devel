@@ -1,0 +1,26 @@
+mac     : togethersphere.com     50500 in    .001s,   local #u8(192 168 0 200)   54557 in    .000s,   peer #u8(35 203 7 77)     50500 in    .019s
+mac     : www.togethersphere.com 50500 in    .001s,   local #u8(192 168 0 200)   54558 in    .000s,   peer #u8(35 203 7 77)     50500 in    .022s
+mac     : #u8(35 203 7 77)       50500 in    .000s,   local #u8(192 168 0 200)   54559 in    .000s,   peer #u8(35 203 7 77)     50500 in    .013s
+mac     : togethersphere.com     50509 in    .001s,   local #u8(192 168 0 200)   54560 in    .000s,   peer #<os-exception #2>      #f in    .018s
+mac     : www.togethersphere.com 50509 in    .001s,   local #u8(192 168 0 200)   54561 in    .000s,   peer #<os-exception #3>      #f in    .014s
+mac     : #u8(35 203 7 77)       50509 in    .000s,   local #u8(192 168 0 200)   54562 in    .000s,   peer #<os-exception #4>      #f in    .015s
+mac     : www.google.com            80 in    .001s,   local #u8(192 168 0 200)   54563 in    .000s,   peer #u8(172 217 13 164)     80 in    .015s
+mac     : www.google.com         45239 in    .001s,   local #u8(192 168 0 200)   54564 in    .000s,   peer #<os-exception #5>      #f in  75.001s
+
+linux   : togethersphere.com     50500 in    .036s,   local #u8(10 162 0 2)      54861 in    .000s,   peer #u8(35 203 7 77)     50500 in    .001s
+linux   : www.togethersphere.com 50500 in    .023s,   local #u8(10 162 0 2)      55799 in    .000s,   peer #u8(35 203 7 77)     50500 in    .001s
+linux   : #u8(35 203 7 77)       50500 in    .000s,   local #u8(10 162 0 2)      47505 in    .000s,   peer #u8(35 203 7 77)     50500 in    .001s
+linux   : togethersphere.com     50509 in    .000s,   local #u8(10 162 0 2)      55937 in    .000s,   peer #<os-exception #2>      #f in    .001s
+linux   : www.togethersphere.com 50509 in    .000s,   local #u8(10 162 0 2)      40283 in    .000s,   peer #<os-exception #3>      #f in    .001s
+linux   : #u8(35 203 7 77)       50509 in    .000s,   local #u8(10 162 0 2)      49361 in    .000s,   peer #<os-exception #4>      #f in    .001s
+linux   : www.google.com            80 in    .002s,   local #u8(10 162 0 2)      42749 in    .000s,   peer #u8(172 217 13 100)     80 in    .001s
+linux   : www.google.com         45239 in    .000s,   local #u8(10 162 0 2)      53637 in    .000s,   peer #<os-exception #5>      #f in 131.137s
+
+windows : togethersphere.com     50500 in    .094s,   local #u8(192 168 0 167)   52336 in    .015s,   peer #u8(35 203 7 77)     50500 in    .000s
+windows : www.togethersphere.com 50500 in    .055s,   local #u8(192 168 0 167)   52337 in    .017s,   peer #u8(35 203 7 77)     50500 in    .000s
+windows : #u8(35 203 7 77)       50500 in    .000s,   local #u8(192 168 0 167)   52338 in    .025s,   peer #u8(35 203 7 77)     50500 in    .000s
+windows : togethersphere.com     50509 in    .001s,   local #f                   52339 in   2.124s,   peer #u8(35 203 7 77)     50509 in    .000s
+windows : www.togethersphere.com 50509 in    .000s,   local #f                   52340 in   2.111s,   peer #u8(35 203 7 77)     50509 in    .000s
+windows : #u8(35 203 7 77)       50509 in    .000s,   local #f                   52341 in   2.120s,   peer #u8(35 203 7 77)     50509 in    .000s
+windows : www.google.com            80 in    .031s,   local #u8(192 168 0 167)   52342 in    .016s,   peer #u8(172 217 13 164)     80 in    .000s
+windows : www.google.com         45239 in    .001s,   local #f                   52343 in  21.030s,   peer #u8(172 217 13 164)  45239 in    .000s

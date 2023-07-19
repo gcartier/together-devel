@@ -1,0 +1,32 @@
+(script jazz
+
+(import (jazz.settings))
+
+(define host
+  (string-argument "host" "*"))
+
+(define service
+  50100)
+
+(define port
+  (open-udp (list
+              local-address: host
+              local-port-number: service)))
+
+(define size
+  (integer-argument "size" #f))
+
+(define count
+  (integer-argument "count" 255))
+
+(tell 'receive 'size 'is (udp-socket-receive-buffer-size port))
+(when size
+  (udp-socket-receive-buffer-size-set! port size)
+  (tell 'receive 'size 'set 'to size))
+
+(terminal 'receiving count 'on host service)
+(loop (for n from 0 to count)
+      (let ((buffer (read port)))
+        (terminal (u8vector-ref buffer 0))))
+
+(terminal 'received))

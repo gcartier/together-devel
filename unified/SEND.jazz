@@ -1,0 +1,14 @@
+;;;
+;;;; SEND
+;;;
+
+
+;; Microphone-Audio-Src task
+;;   gst_app_sink_process(task)
+;;     consume-frame(consumer, buffer, dts, pts, duration, flags)
+;;       send-media(buffer, dts, pts, duration, flags)
+
+
+;; send-media(buffer, dts, pts, duration, flags)
+;;   chunk buffer into packets
+;;   write to udp

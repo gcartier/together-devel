@@ -1,0 +1,61 @@
+(script jazz
+
+(define (test server-address server-port)
+  (define (time thunk)
+    (let ((before (current-seconds)))
+      (with-exception-catcher
+        (lambda (exc)
+          (let ((duration (- (current-seconds) before)))
+            (values #f exc duration)))
+        (lambda ()
+          (let ((result (thunk)))
+            (let ((duration (- (current-seconds) before)))
+              (values result #f duration)))))))
+ 
+  (receive (port exc duration) (time (lambda () (open-tcp-client (list server-address: server-address port-number: server-port))))
+    (define (local-info)
+      (receive (info exc duration) (time (lambda () (tcp-client-local-socket-info port)))
+        (values (if exc
+                    (format :string "{a width: 26}" exc)
+                  (format :string "{a width: 20} {a width: 5 justify: :right}"
+                    (socket-info-address info)
+                    (socket-info-port-number info)))
+                duration)))
+   
+    (define (peer-info)
+      (receive (info exc duration) (time (lambda () (tcp-client-peer-socket-info port)))
+        (values (if exc
+                    (format :string "{a width: 26}" exc)
+                  (format :string "{a width: 20} {a width: 5 justify: :right}"
+                    (socket-info-address info)
+                    (socket-info-port-number info)))
+                duration)))
+   
+    (if exc
+        (format :terminal "{a width: 7} : {a width: 22} {a width: 5 justify: :right} {a} in {r precision: 3 width: 7 justify: :right}{%}"
+          kernel-platform
+          server-address server-port exc duration)
+      (receive (local local-duration) (local-info)
+        (receive (peer peer-duration) (peer-info)
+          (format :terminal "{a width: 7} : {a width: 22} {a width: 5 justify: :right} in {r precision: 3 width: 7 justify: :right}s,   local {a} in {r precision: 3 width: 7 justify: :right}s,   peer {a} in {r precision: 3 width: 7 justify: :right}s{%}"
+            kernel-platform
+            server-address server-port duration
+            local local-duration
+            peer peer-duration))))))
+
+(test "togethersphere.com" 50500)
+(test "www.togethersphere.com" 50500)
+(test #u8(35 203 7 77) 50500)
+
+(test "togethersphere.com" 50509)
+(test "www.togethersphere.com" 50509)
+(test #u8(35 203 7 77) 50509)
+
+(test "www.doesnotexxxxist.com" 80)
+(test "www.doesnotexxxxist.com" 45239)
+
+(test #u8(27 1 213 17) 80)
+(test #u8(27 1 213 17) 45239)
+
+(test "www.google.com" 80)
+(test "www.google.com" 45239))

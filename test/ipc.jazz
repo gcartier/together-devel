@@ -1,0 +1,121 @@
+;; TODO
+;; - if the server process quits and other client
+;;   processes still need it
+
+
+(definition sync-host
+  "localhost")
+
+(definition sync-service
+  7002)
+
+(definition sync-role
+  #f)
+
+(definition sync-port
+  #f)
+
+(definition sync-mutex
+  (make-mutex 'sync))
+
+
+(definition (already-in-use? exc)
+  (and (os-exception? exc)
+       (let ((msg (err-code->string (os-exception-code exc))))
+         (cond-expand
+           (windows (starts-with? msg "Only one usage of each socket address"))
+           (else (equal? msg "Address already in use"))))))
+
+
+(definition (with-server-sync thunk)
+  (unwind-protect
+      (begin
+        (mutex-lock! sync-mutex)
+        (thunk))
+    (mutex-unlock! sync-mutex)))
+
+
+(definition (with-client-sync thunk)
+  (unwind-protect
+      (begin
+        (tell 'lock)
+        (write-char #\< sync-port)
+        (force-output sync-port)
+        (read sync-port)
+        (thunk))
+    (tell 'unlock)
+    (write-char #\> sync-port)
+    (force-output sync-port)
+    (read sync-port)))
+
+
+(definition (process-server server-port)
+  (declare (proper-tail-calls))
+  (let (loop)
+    (let ((port (read server-port)))
+      (thread-start!
+        (new-thread
+          (lambda ()
+            (process-client port))
+          'client))
+      (loop))))
+
+
+(definition (process-client port)
+  (declare (proper-tail-calls))
+  (let (loop)
+    (case (read-char port)
+      ((#\<)
+       (tell 'lock)
+       (mutex-lock! sync-mutex)
+       (write 'ack port)
+       (newline port)
+       (force-output port))
+      ((#\>)
+       (tell 'unlock)
+       (mutex-unlock! sync-mutex)
+       (write 'ack port)
+       (newline port)
+       (force-output port)))
+    (loop)))
+
+
+(definition (with-setup-sync thunk)
+  (catch-exception-filter
+    (lambda (exc)
+      (already-in-use? exc))
+    (lambda (exc)
+      (let ((port (open-tcp-client (list server-address: sync-host port-number: sync-service))))
+        (set! sync-role 'client)
+        (set! sync-port port)
+        (with-client-sync thunk)))
+    (lambda ()
+      (let ((server-port (open-tcp-server (list server-address: sync-host port-number: sync-service reuse-address: #f))))
+        (thread-start!
+          (new-thread
+            (lambda ()
+              (process-server server-port))
+            'server))
+        (set! sync-role 'server)
+        (with-server-sync thunk)))))
+
+
+(definition (with-sync thunk)
+  (case sync-role
+    ((server)
+     (with-server-sync thunk))
+    ((client)
+     (with-client-sync thunk))
+    (else
+     (with-setup-sync thunk))))
+
+
+(with-sync
+  (lambda ()
+    (tell 'work)
+    (sleep 3)))
+
+
+;; quicky
+(when (eq? sync-role 'server)
+  (sleep +inf.0))

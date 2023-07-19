@@ -1,0 +1,77 @@
+(script jazz
+
+(require (trun))
+
+(import (world.udp))
+
+(define server-address
+  ;"togethersphere.com"
+  "localhost"
+  )
+
+(define server-port
+  50900)
+
+(define processor-port
+  (+ server-port 1))
+
+(define mobile-port
+  (+ server-port 50))
+
+;;;
+;;;; TCP
+;;;
+
+(define (hack-tcp port-number)
+  (terminal 'HACK 'TCP port-number)
+  (terminal 'tcp:open/close)
+  (let ((port (open-tcp-client (list server-address: server-address port-number: port-number))))
+    (sleep .5)
+    (close-port port))
+  
+  (terminal 'tcp:invalid-data)
+  (let ((port (open-tcp-client (list server-address: server-address port-number: port-number))))
+    (loop (for n from 1 to 30)
+          (write-u8 n port))
+    (force-output port)
+    (sleep .5)
+    (close-port port)))
+
+;;;
+;;;; UDP
+;;;
+
+(define (send-udp data port-number)
+  (let ((udp-port (open-udp (list
+                              local-address: "*"
+                              address: server-address
+                              port-number: port-number))))
+    (write data udp-port)
+    (sleep .5)))
+
+(define (hack-udp port-number)
+  (terminal 'HACK 'UDP port-number)
+  (terminal 'udp:invalid-packet)
+  (let ((data (u8vector 1 2 3)))
+    (send-udp data port-number)
+    (sleep .5))
+
+  (terminal 'udp:invalid-code)
+  (let ((data (make-u8vector (+ 8 4 2 2))))
+    (write-udp-sent data (current-seconds))
+    (write-udp-kind data udp-video)
+    (write-udp-sender data 23)
+    (write-udp-channel data 34)
+    (send-udp data port-number)
+    (sleep .5)))
+
+;;;
+;;;; Hack
+;;;
+
+(hack-tcp server-port)
+;(hack-udp server-port)
+;(hack-tcp processor-port)
+(hack-tcp mobile-port)
+
+(terminal 'done))

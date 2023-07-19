@@ -1,0 +1,40 @@
+(script jazz
+
+(import (jazz.settings))
+
+(define host
+  (string-argument "host" "localhost"))
+
+(define service
+  50100)
+
+(define port
+  (open-udp (list
+              local-address: "*"
+              address: host
+              port-number: service)))
+
+(define size
+  (integer-argument "size" #f))
+
+(define count
+  (integer-argument "count" 255))
+
+(define delay
+  (let ((delay (integer-argument "delay" #f)))
+    (and delay (/ (cast <fl> delay) 1000))))
+
+(tell 'send 'size 'is (udp-socket-send-buffer-size port))
+(when size
+  (udp-socket-send-buffer-size-set! port size)
+  (tell 'send 'size 'set 'to size))
+
+(terminal 'sending count 'to host service)
+(loop (for n from 0 to count)
+      (let ((buffer (make-u8vector 1300)))
+        (u8vector-set! buffer 0 n)
+        (write buffer port)
+        (when delay
+          (sleep delay))))
+
+(terminal 'sent))
