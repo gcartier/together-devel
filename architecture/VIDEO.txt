@@ -1,0 +1,72 @@
+.54333     GLOBAL (TOGETHER .5875) (ZOOM .275)
+  0          PROCESSING (os + gstreamer + gambit)
+  .05333     ORIGIN
+  | .05333     CAMERA
+  |   .03333     avfvideosrc device-index=0 name=src
+  |   |          <rate probe>
+  |   |          video/x-raw, width=1280, height=720, pixel-aspect-ratio=(fraction)1/1
+  |   |          queue name=queue
+  |   |          videoconvert
+  |   |          video/x-raw, format=I420, width=1280, height=720, pixel-aspect-ratio=(fraction)1/1
+  |   |          videoscale method=sinc sharpness=1.15
+  |   |          video/x-raw, width=640, height=360, pixel-aspect-ratio=(fraction)1/1
+  |   |          tee name=tee
+  |   |          tee.
+  |   |            <rate probe>
+  |   |            queue name=queueselfstandard
+  |   |            videoconvert
+  |   |            video/x-raw, format=BGRA, width=640, height=360, pixel-aspect-ratio=(fraction)1/1
+  |   |            appsink async=false name=sinkselfstandard
+  |   |          tee.
+  |   |            <rate probe>
+  |   |            queue name=queueselfmedium
+  |   |            videoscale method=sinc sharpness=1.15
+  |   |            video/x-raw, width=416, height=234, pixel-aspect-ratio=(fraction)1/1
+  |   |            videoconvert
+  |   |            video/x-raw, format=BGRA, width=416, height=234, pixel-aspect-ratio=(fraction)1/1
+  |   |            appsink async=false name=sinkselfmedium
+  |   |          tee...
+  |   |          tee.
+  |   |            <rate probe>
+  |   |            queue name=queuestandard
+  |   |            x264enc key-int-max=48 bitrate=1024 tune=zerolatency speed-preset=superfast threads=2 name=encstandard
+  |   .02          appsink async=false name=sinkstandard
+  |              tee.
+  |                <rate probe>
+  |                queue name=queuemedium
+  |                videoscale method=sinc sharpness=1.15
+  |                video/x-raw, width=416, height=234, pixel-aspect-ratio=(fraction)1/1
+  |                x264enc key-int-max=48 bitrate=768 tune=zerolatency speed-preset=superfast threads=1 name=encmedium
+  |                appsink async=false name=sinkmedium
+  |              tee...
+  |            UDP
+  |              send media to server
+  |              receice nack and send missing
+  .02        NETWORK
+  |          SERVER
+  |            UDP
+  |              receive media
+  |              retain media
+  |              send nack on gap
+  |              broacast media to receivers
+  |              receice nack and send missing
+  .02        NETWORK
+  .45        RECEIVER
+    |          UDP
+    |            receive media
+    |            remember media
+    |            insert into ring
+    |            send nack on gap
+    .4         PROCESS
+    | .4         process at udp-video-present
+    .05        OUTPUT
+      .03        appsrc min-latency=30000000 name=src
+        .03        min-latency
+      |          queue name=queue
+      |          avdec_h264 max-threads=1
+      |          videoscale
+      |          videoconvert
+      |          video/x-raw, format=BGRA, width=640, height=360, pixel-aspect-ratio=(fraction)1/1
+      .02        appsink name=sink
+               OPENGL
+                 map texture to opengl

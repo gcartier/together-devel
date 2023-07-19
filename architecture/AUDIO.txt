@@ -1,0 +1,55 @@
+.59873     GLOBAL (TOGETHER .5875) (ZOOM .275)
+  0          PROCESSING (os + gstreamer + gambit)
+  .08873     ORIGIN
+  | .08873     MICROPHONE
+  | | .01        osxaudiosrc provide-clock=false name=src
+  | | |          volume name=volume
+  | | |          queue name=queue
+  | | .00073     audioresample
+  | | |          webrtcaudioprocessor echo-cancel=true noise-suppression=true gain-controller=true name=processor
+  | | |          rndenoiser name=rndenoiser denoise=false
+  | | |          audioresample
+  | | |          audioconvert
+  | | |          audio/x-raw, format=F32LE, layout=interleaved, rate=48000, channels=1
+  | | .058       opusenc name=enc
+  | | .02        appsink name=sink
+  |            UDP
+  |              send media to server
+  |              receice nack and send missing
+  .02        NETWORK
+  |          SERVER
+  |            UDP
+  |              receive media
+  |              retain media
+  |              send nack on gap
+  |              broacast media to receivers
+  |              receice nack and send missing
+  .02        NETWORK
+  .47        RECEIVER
+    |          UDP
+    |            receive media
+    |            remember media
+    |            insert into ring
+    |            send nack on gap
+    .2         PROCESS
+    | .2         process at udp-audio-present
+    .27        SPEAKER
+      .04        appsrc caps=\"audio/x-opus, rate=(int)48000, ...\" min-latency=40000000 name=src
+        .04        min-latency
+      |          queue name=queue
+      |          opusdec name=dec
+      |          audioconvert name=convert
+      |          audioresample name=resample
+      |          audio/x-raw, format=S16LE, layout=interleaved, rate=48000, channels=2
+      |          volume volume=1 name=volume
+      |          audiopanorama method=1 name=panorama
+      |          --->
+      |          audiotestsrc samplesperbuffer=480 wave=silence is-live=true name=bootstrap (-)
+      .11        audiomixer latency=100000000 (+)
+        .1         latency
+        .01        output-buffer-duration
+      |          queue max-size-time=200000000 name=queue
+      |          webrtcaudioprobe delay=0 name=probe
+      .12        osxaudiosink buffer-time=100000 name=sink"
+        .1         buffer-time
+        .02        processing-deadline
